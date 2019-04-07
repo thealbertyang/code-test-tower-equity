@@ -1,0 +1,49 @@
+###############################################################################
+#                          Generated on phpdocker.io                          #
+###############################################################################
+version: "3.1"
+services:
+
+    phpmyadmin:
+     image: phpmyadmin/phpmyadmin
+     links:
+      - mysql:mysql
+     ports:
+       - 9191:80
+     environment:
+       MYSQL_USERNAME: root
+       MYSQL_ROOT_PASSWORD: codeTest123
+       PMA_HOST: mysql
+    mysql:
+      image: mysql:8.0
+      command: ['--character-set-server=utf8mb4', '--collation-server=utf8mb4_unicode_ci','--default-authentication-plugin=mysql_native_password']
+      container_name: code-test-4-5-mysql
+      working_dir: /application
+      volumes:
+        - .:/application
+      environment:
+        - MYSQL_ROOT_PASSWORD=codeTest123
+        - MYSQL_DATABASE=code-test
+        - MYSQL_USER=root
+        - MYSQL_PASSWORD=codeTest123
+      ports:
+        - "3002:3306"
+
+    webserver:
+      image: nginx:alpine
+      container_name: code-test-4-5-webserver
+      working_dir: /application
+      volumes:
+          - .:/application
+          - ./phpdocker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+      ports:
+        - "3000:80"
+      depends_on:
+        - mysql
+    php-fpm:
+      build: phpdocker/php-fpm
+      container_name: code-test-4-5-php-fpm
+      working_dir: /application
+      volumes:
+        - .:/application
+        - ./phpdocker/php-fpm/php-ini-overrides.ini:/etc/php/7.3/fpm/conf.d/99-overrides.ini
